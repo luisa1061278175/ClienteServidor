@@ -1,6 +1,4 @@
 package co.edu.uniquindio.cliente;
-//"192.168.1.59", 1234
-
 
 import java.io.*;
 import java.net.Socket;
@@ -32,15 +30,21 @@ public class Cliente {
         String opcion = teclado.readLine();
         out.println(opcion);
 
-        if ("2".equals(opcion)) {
-            iniciarSesion();
-        } else if ("1".equals(opcion)) {
-            cambiarContrasena();
-        } else if ("3".equals(opcion)) {
-            System.out.println("Saliendo...");
-            socket.close();
-        } else {
-            System.out.println("Opción inválida.");
+        switch (opcion) {
+            case "1":
+                cambiarContrasena();
+                break;
+            case "2":
+                iniciarSesion();
+                break;
+            case "3":
+                System.out.println("Saliendo...");
+                socket.close();
+                break;
+            default:
+                System.out.println("Opción inválida.");
+                mostrarMenu();
+                break;
         }
     }
 
@@ -56,6 +60,12 @@ public class Cliente {
 
         String respuesta = in.readLine();
         System.out.println("Servidor: " + respuesta);
+
+        if ("Inicio de sesión exitoso".equals(respuesta)) {
+            mostrarMenuLibros();
+        } else {
+            mostrarMenu();
+        }
     }
 
     private void cambiarContrasena() throws IOException {
@@ -74,11 +84,32 @@ public class Cliente {
         if (respuestaVerificacion.contains("exitoso")) {
             System.out.println(in.readLine()); // "Ingrese su nueva contraseña:"
             String nuevaContrasena = teclado.readLine();
+            System.out.println("Enviando nueva contraseña: " + nuevaContrasena); // Depuración
             out.println(nuevaContrasena);
 
             String respuestaActualizacion = in.readLine();
             System.out.println("Servidor: " + respuestaActualizacion);
+        } else {
+            mostrarMenu();
         }
+    }
+
+    private void mostrarMenuLibros() throws IOException {
+        BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
+
+        String libroMenu;
+        while ((libroMenu = in.readLine()) != null) {
+            System.out.println("Servidor: " + libroMenu);
+
+            if (libroMenu.contains("Ingrese el número del libro")) {
+                String seleccion = teclado.readLine();
+                out.println(seleccion);
+                String confirmacion = in.readLine();
+                System.out.println("Servidor: " + confirmacion);
+                break;
+            }
+        }
+        mostrarMenu();
     }
 
     public static void main(String[] args) {
