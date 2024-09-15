@@ -2,6 +2,12 @@ Sirve:
 Cambiar contraseña
 Hacer el login
 hacer reserva
+reescribe el archivo txt
+buscar por genero, autor
 
-Falta:
-buscar por genero, autor...
+
+
+PROBLEMA: Cuando el cliente modifica la contraseña, vuelve a aparecer
+el menu principal, el cliente selecciona iniciar sesion, le pregunta
+la cedula y contraseña pero no hace ningun otro procedimiento
+---Parece que no le esta enviando la respuesta al servidor
