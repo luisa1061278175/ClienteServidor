@@ -106,8 +106,8 @@ public class Servidor {
 
     private void mostrarMenuLibros(BufferedReader in, PrintWriter out) throws IOException {
         List<String> lineas = Files.readAllLines(Paths.get(RUTA_LIBROS));
-        List<String> librosDisponibles = new ArrayList<>();
         List<String> nuevasLineas = new ArrayList<>();
+        List<String> librosDisponibles = new ArrayList<>();
 
         // Mostrar los libros disponibles
         out.println("Libros disponibles:");
@@ -117,33 +117,37 @@ public class Servidor {
             if (datos[4].equals("true")) { // Solo mostrar libros disponibles
                 out.println(index + ". " + datos[1] + " - Autor: " + datos[2]);
                 librosDisponibles.add(datos[0]); // Guardar el id del libro disponible
-                nuevasLineas.add(linea); // Guardar línea original
                 index++;
             }
+            // Guardar todas las líneas para reescribir el archivo, no solo las disponibles
+            nuevasLineas.add(linea);
         }
+
         out.println("Ingrese el número del libro que desea reservar:");
 
-        // Leer la entrada del usuario para la reserva
+        // Leer la selección del usuario
         String seleccion = in.readLine();
         int libroSeleccionado = Integer.parseInt(seleccion) - 1;
 
+        // Verificar si la selección es válida
         if (libroSeleccionado >= 0 && libroSeleccionado < librosDisponibles.size()) {
             String libroId = librosDisponibles.get(libroSeleccionado);
-
-            // Actualizar el archivo para marcar el libro como no disponible
             boolean libroReservado = false;
-            for (String linea : lineas) {
-                String[] datos = linea.split(";");
+
+            // Actualizar la disponibilidad del libro seleccionado en la lista de líneas
+            for (int i = 0; i < lineas.size(); i++) {
+                String[] datos = lineas.get(i).split(";");
                 if (datos[0].equals(libroId)) {
-                    // Cambiar disponibilidad del libro a 'false'
-                    nuevasLineas.add(libroId + ";" + datos[1] + ";" + datos[2] + ";" + datos[3] + ";false");
+                    // Cambiar la disponibilidad a 'false' si es el libro seleccionado
+                    datos[4] = "false";
+                    nuevasLineas.set(i, String.join(";", datos));
                     libroReservado = true;
-                } else {
-                    nuevasLineas.add(linea); // Mantener línea original
+                    break; // Terminar después de encontrar el libro
                 }
             }
 
             if (libroReservado) {
+                // Reescribir el archivo con la nueva disponibilidad
                 Files.write(Paths.get(RUTA_LIBROS), nuevasLineas);
                 out.println("Reserva realizada con éxito.");
             } else {
@@ -153,6 +157,7 @@ public class Servidor {
             out.println("Número de libro inválido.");
         }
     }
+
 
 
     public static boolean verificarCredenciales(String cedula, String contrasena) throws IOException {
