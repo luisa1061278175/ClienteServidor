@@ -1,3 +1,6 @@
+
+
+
 Sirve:
 Cambiar contraseña
 Hacer el login
@@ -6,8 +9,14 @@ reescribe el archivo txt
 buscar por genero, autor
 
 
-
 PROBLEMA: Cuando el cliente modifica la contraseña, vuelve a aparecer
 el menu principal, el cliente selecciona iniciar sesion, le pregunta
 la cedula y contraseña pero no hace ningun otro procedimiento
 ---Parece que no le esta enviando la respuesta al servidor
+
+
+PARA CONECTAR CLIENTE CON SERVIDOR:
+La carpeta de cliente se pone en el otro pc, se debe cambiar:
+en la terminal, poner un comando para saber cual es la direccion ip y el puerto,
+Los cuales se deben poner en el cliente
+

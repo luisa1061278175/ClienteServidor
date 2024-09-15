@@ -1,4 +1,4 @@
-package co.edu.uniquindio.cliente;
+package co.edu.uniquindio.clasesDePrueba;
 
 import java.io.BufferedReader;
 import java.io.IOException;

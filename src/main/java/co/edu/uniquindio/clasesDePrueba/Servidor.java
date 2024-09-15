@@ -1,4 +1,4 @@
-package co.edu.uniquindio.servidor;
+package co.edu.uniquindio.clasesDePrueba;
 
 import java.io.*;
 import java.net.ServerSocket;

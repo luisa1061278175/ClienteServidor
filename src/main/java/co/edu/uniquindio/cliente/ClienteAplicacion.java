@@ -16,7 +16,7 @@ public class ClienteAplicacion {
         socket = new Socket(host, puerto);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
-        logica = new ClienteLogica(in, out); // Instancia la lógica del cliente
+        logica = new ClienteLogica(in, out);
     }
 
     public void iniciarCliente() {
@@ -42,7 +42,7 @@ public class ClienteAplicacion {
                         salir = true;
                         break;
                     default:
-                        System.out.println(in.readLine()); // Mostrar mensaje de opción inválida
+                        System.out.println(in.readLine());
                         break;
                 }
             }
