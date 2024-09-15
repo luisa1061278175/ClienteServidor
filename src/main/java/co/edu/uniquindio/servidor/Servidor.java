@@ -38,6 +38,8 @@ public class Servidor {
         try {
             while (!salir) {
                 out.println("Menu: 1. Cambiar Contraseña  2. Iniciar Sesión   3. Salir");
+                System.out.println("Menú enviado al cliente.");
+
                 String opcion = in.readLine();
                 System.out.println("Opción recibida del cliente: " + opcion);
 
@@ -50,10 +52,12 @@ public class Servidor {
                         break;
                     case "3":
                         out.println("Saliendo...");
+                        System.out.println("El cliente seleccionó salir.");
                         salir = true; // Termina el bucle para cerrar la conexión
                         break;
                     default:
                         out.println("Opción inválida");
+                        System.out.println("Opción inválida seleccionada.");
                         break;
                 }
             }
@@ -64,45 +68,77 @@ public class Servidor {
 
     private void iniciarSesion(BufferedReader in, PrintWriter out) throws IOException {
         out.println("Ingrese su usuario (cédula):");
+        System.out.println("Solicitud de cédula enviada al cliente.");
+
         String usuario = in.readLine();
         System.out.println("Usuario recibido: " + usuario);
 
         out.println("Ingrese su contraseña:");
+        System.out.println("Solicitud de contraseña enviada al cliente.");
+
         String contrasena = in.readLine();
         System.out.println("Contraseña recibida: " + contrasena);
 
         if (verificarCredenciales(usuario, contrasena)) {
             out.println("Inicio de sesión exitoso");
-            mostrarMenuLibros(in,out);
+            System.out.println("Inicio de sesión exitoso para el usuario: " + usuario);
+            mostrarMenuLibros(in, out);
         } else {
             out.println("Credenciales inválidas.");
+            System.out.println("Credenciales inválidas para el usuario: " + usuario);
         }
     }
 
     private void cambiarContrasena(BufferedReader in, PrintWriter out) throws IOException {
+        // Solicitar cédula al cliente
         out.println("Ingrese su usuario (cédula):");
+        System.out.println("Solicitud de cédula enviada al cliente para cambio de contraseña.");
+
+        // Leer cédula del cliente
         String usuario = in.readLine();
         System.out.println("Usuario recibido: " + usuario);
 
+        // Solicitar contraseña actual al cliente
         out.println("Ingrese su contraseña actual:");
+        System.out.println("Solicitud de contraseña actual enviada al cliente.");
+
+        // Leer contraseña actual del cliente
         String contrasenaActual = in.readLine();
         System.out.println("Contraseña actual recibida: " + contrasenaActual);
 
+        // Verificar las credenciales
         if (verificarCredenciales(usuario, contrasenaActual)) {
+            // Informar al cliente que la verificación fue exitosa
+            out.println("Verificación exitosa."); // Enviar mensaje al cliente indicando éxito
+            System.out.println("Verificación exitosa para el usuario: " + usuario);
+
+            // Solicitar nueva contraseña
             out.println("Ingrese su nueva contraseña:");
+            System.out.println("Solicitud de nueva contraseña enviada al cliente.");
+
+            // Leer nueva contraseña del cliente
             String nuevaContrasena = in.readLine();
             System.out.println("Nueva contraseña recibida: " + nuevaContrasena);
 
+            // Intentar actualizar la contraseña
             boolean exito = modificarContrasena(usuario, nuevaContrasena);
+
             if (exito) {
                 out.println("Contraseña actualizada correctamente.");
+                System.out.println("Contraseña actualizada para el usuario: " + usuario);
+                mostrarMenuLibros(in,out);
+
             } else {
                 out.println("Error al actualizar la contraseña.");
+                System.out.println("Error al actualizar la contraseña del usuario: " + usuario);
             }
         } else {
+            // Informar al cliente que la verificación falló
             out.println("Credenciales inválidas.");
+            System.out.println("Credenciales inválidas para el usuario: " + usuario);
         }
     }
+
 
     private void mostrarMenuLibros(BufferedReader in, PrintWriter out) throws IOException {
         List<String> lineas = Files.readAllLines(Paths.get(RUTA_LIBROS));
@@ -111,6 +147,8 @@ public class Servidor {
 
         // Mostrar los libros disponibles
         out.println("Libros disponibles:");
+        System.out.println("Enviando lista de libros disponibles al cliente.");
+
         int index = 1;
         for (String linea : lineas) {
             String[] datos = linea.split(";");
@@ -119,91 +157,100 @@ public class Servidor {
                 librosDisponibles.add(datos[0]); // Guardar el id del libro disponible
                 index++;
             }
-            // Guardar todas las líneas para reescribir el archivo, no solo las disponibles
-            nuevasLineas.add(linea);
+            nuevasLineas.add(linea); // Guardar todas las líneas
         }
 
         out.println("Ingrese el número del libro que desea reservar:");
+        System.out.println("Solicitud de número de libro enviada al cliente.");
 
         // Leer la selección del usuario
         String seleccion = in.readLine();
+        System.out.println("Libro seleccionado por el cliente: " + seleccion);
+
         int libroSeleccionado = Integer.parseInt(seleccion) - 1;
 
-        // Verificar si la selección es válida
         if (libroSeleccionado >= 0 && libroSeleccionado < librosDisponibles.size()) {
             String libroId = librosDisponibles.get(libroSeleccionado);
             boolean libroReservado = false;
 
-            // Actualizar la disponibilidad del libro seleccionado en la lista de líneas
+            // Actualizar la disponibilidad del libro seleccionado
             for (int i = 0; i < lineas.size(); i++) {
                 String[] datos = lineas.get(i).split(";");
                 if (datos[0].equals(libroId)) {
-                    // Cambiar la disponibilidad a 'false' si es el libro seleccionado
-                    datos[4] = "false";
+                    datos[4] = "false"; // Cambiar disponibilidad a 'false'
                     nuevasLineas.set(i, String.join(";", datos));
                     libroReservado = true;
-                    break; // Terminar después de encontrar el libro
+                    System.out.println("Libro reservado: " + datos[1]);
+                    break;
                 }
             }
 
             if (libroReservado) {
-                // Reescribir el archivo con la nueva disponibilidad
                 Files.write(Paths.get(RUTA_LIBROS), nuevasLineas);
                 out.println("Reserva realizada con éxito.");
+                System.out.println("Reserva realizada con éxito para el libro: " + libroId);
             } else {
-                out.println("Error al realizar la reserva. El libro no está disponible.");
+                out.println("Error al realizar la reserva.");
+                System.out.println("Error al realizar la reserva del libro: " + libroId);
             }
         } else {
             out.println("Número de libro inválido.");
+            System.out.println("Número de libro inválido ingresado por el cliente.");
         }
     }
-
-
 
     public static boolean verificarCredenciales(String cedula, String contrasena) throws IOException {
-        // Leer todas las líneas del archivo
         List<String> lineas = Files.readAllLines(Paths.get(RUTA_ARCHIVO));
 
-        // Iterar sobre cada línea para buscar coincidencia
         for (String linea : lineas) {
             String[] datos = linea.split(";");
-            // Verificar si la cédula y la contraseña coinciden
             if (datos.length == 2 && datos[0].equals(cedula) && datos[1].equals(contrasena)) {
-                return true; // Credenciales válidas
+                System.out.println("Credenciales verificadas para el usuario: " + cedula);
+                return true;
             }
         }
-        return false; // Credenciales inválidas
+        System.out.println("Credenciales inválidas para el usuario: " + cedula);
+        return false;
     }
 
-    public static boolean modificarContrasena(String cedula, String nuevaContrasena) throws IOException {
-        // Leer todas las líneas del archivo
-        List<String> lineas = Files.readAllLines(Paths.get(RUTA_ARCHIVO));
-        List<String> nuevasLineas = new ArrayList<>();
+    private boolean modificarContrasena(String usuario, String nuevaContrasena) {
+        File archivo = new File("src/main/java/co/edu/uniquindio/archivo/Estudiantes.txt");
+        boolean actualizado = false;
 
-        // Bandera para verificar si se encontró la cédula
-        boolean encontrado = false;
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+            StringBuilder contenidoArchivo = new StringBuilder();
+            String linea;
 
-        // Iterar sobre cada línea para encontrar la cédula
-        for (String linea : lineas) {
-            String[] datos = linea.split(";");
-            if (datos[0].equals(cedula)) {
-                // Si la cédula coincide, cambiar la contraseña
-                nuevasLineas.add(cedula + ";" + nuevaContrasena);
-                encontrado = true;
+            while ((linea = br.readLine()) != null) {
+                String[] datos = linea.split(";");
+                if (datos[0].equals(usuario)) {
+                    System.out.println("Usuario encontrado: " + usuario + ". Actualizando contraseña...");
+                    linea = datos[0] + ";" + nuevaContrasena; // Actualizar línea con nueva contraseña
+                    actualizado = true;
+                }
+                contenidoArchivo.append(linea).append(System.lineSeparator());
+            }
+
+            // Escribir el contenido actualizado de nuevo al archivo
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(archivo))) {
+                bw.write(contenidoArchivo.toString());
+            }
+
+            if (actualizado) {
+                System.out.println("Contraseña actualizada en el archivo para el usuario: " + usuario);
             } else {
-                // Si no coincide, mantener la línea original
-                nuevasLineas.add(linea);
+                System.out.println("Usuario no encontrado en el archivo.");
             }
-        }
 
-        if (encontrado) {
-            Files.write(Paths.get(RUTA_ARCHIVO), nuevasLineas);
-            System.out.println("Contraseña actualizada en el archivo.");
-        } else {
-            System.out.println("Cédula no encontrada para actualizar la contraseña.");
+            return actualizado;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
-        return encontrado;
     }
+
+
+
 
     public static void main(String[] args) {
         try {

@@ -70,30 +70,39 @@ public class Cliente {
     }
 
     private void cambiarContrasena() throws IOException {
+        // Leer y enviar usuario (cédula)
         System.out.println(in.readLine()); // "Ingrese su usuario (cédula):"
         BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
         String usuario = teclado.readLine();
         out.println(usuario);
 
+        // Leer y enviar contraseña actual
         System.out.println(in.readLine()); // "Ingrese su contraseña actual:"
         String contrasenaActual = teclado.readLine();
         out.println(contrasenaActual);
 
+        // Verificación por parte del servidor
         String respuestaVerificacion = in.readLine();
         System.out.println("Servidor: " + respuestaVerificacion);
 
-        if (respuestaVerificacion.contains("exitoso")) {
+        if ("Verificación exitosa.".equals(respuestaVerificacion)) {
+            // Leer y enviar nueva contraseña
             System.out.println(in.readLine()); // "Ingrese su nueva contraseña:"
             String nuevaContrasena = teclado.readLine();
-            System.out.println("Enviando nueva contraseña: " + nuevaContrasena); // Depuración
             out.println(nuevaContrasena);
 
+            // Leer respuesta del servidor
             String respuestaActualizacion = in.readLine();
             System.out.println("Servidor: " + respuestaActualizacion);
+
+            String menu=in.readLine();
         } else {
-            mostrarMenu();
+            System.out.println("La verificación de credenciales falló.");
+            mostrarMenu(); // Si la verificación falla
         }
     }
+
+
 
     private void mostrarMenuLibros() throws IOException {
         BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
