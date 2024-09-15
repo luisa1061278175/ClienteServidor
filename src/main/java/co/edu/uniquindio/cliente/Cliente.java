@@ -1,6 +1,9 @@
 package co.edu.uniquindio.cliente;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Cliente {
@@ -8,123 +11,136 @@ public class Cliente {
     private BufferedReader in;
     private PrintWriter out;
 
-
-    public Cliente(String direccionServidor, int puerto) throws IOException {
-        socket = new Socket(direccionServidor, puerto);
+    public Cliente(String host, int puerto) throws IOException {
+        socket = new Socket(host, puerto);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
     }
 
     public void iniciarCliente() {
         try {
-            mostrarMenu();
+            BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
+            boolean salir = false;
+
+            while (!salir) {
+                String menu = in.readLine();
+                System.out.println(menu);
+
+                String opcion = consoleInput.readLine();
+                out.println(opcion);
+
+                switch (opcion) {
+                    case "1":
+                        cambiarContrasena(consoleInput);
+                        break;
+                    case "2":
+                        iniciarSesion(consoleInput);
+                        break;
+                    case "3":
+                        salir = true;
+                        break;
+                    default:
+                        System.out.println(in.readLine()); // Mostrar mensaje de opción inválida
+                        break;
+                }
+            }
+
+            cerrarConexion();
         } catch (IOException e) {
             System.out.println("Error durante la comunicación con el servidor: " + e.getMessage());
         }
     }
 
-    private void mostrarMenu() throws IOException {
-        String mensajeDelServidor = in.readLine();
-        System.out.println("Servidor: " + mensajeDelServidor);
-
-        BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
-        String opcion = teclado.readLine();
-        out.println(opcion);
-
-        switch (opcion) {
-            case "1":
-                cambiarContrasena();
-                break;
-            case "2":
-                iniciarSesion();
-                break;
-            case "3":
-                System.out.println("Saliendo...");
-                socket.close();
-                break;
-            default:
-                System.out.println("Opción inválida.");
-                mostrarMenu();
-                break;
-        }
-    }
-
-    private void iniciarSesion() throws IOException {
-        System.out.println(in.readLine()); // "Ingrese su usuario (cédula):"
-        BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
-        String usuario = teclado.readLine();
+    private void iniciarSesion(BufferedReader consoleInput) throws IOException {
+        System.out.println(in.readLine()); // Solicitud de usuario
+        String usuario = consoleInput.readLine();
         out.println(usuario);
 
-        System.out.println(in.readLine()); // "Ingrese su contraseña:"
-        String contrasena = teclado.readLine();
+        System.out.println(in.readLine()); // Solicitud de contraseña
+        String contrasena = consoleInput.readLine();
         out.println(contrasena);
 
         String respuesta = in.readLine();
-        System.out.println("Servidor: " + respuesta);
+        System.out.println(respuesta);
 
-        if ("Inicio de sesión exitoso".equals(respuesta)) {
-            mostrarMenuLibros();
-        } else {
-            mostrarMenu();
+        if (respuesta.equals("Inicio de sesión exitoso")) {
+            mostrarMenuLibros(consoleInput);
         }
     }
 
-    private void cambiarContrasena() throws IOException {
-        // Leer y enviar usuario (cédula)
-        System.out.println(in.readLine()); // "Ingrese su usuario (cédula):"
-        BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
-        String usuario = teclado.readLine();
+    private void cambiarContrasena(BufferedReader consoleInput) throws IOException {
+        System.out.println(in.readLine()); // Solicitud de cédula
+        String usuario = consoleInput.readLine();
         out.println(usuario);
 
-        // Leer y enviar contraseña actual
-        System.out.println(in.readLine()); // "Ingrese su contraseña actual:"
-        String contrasenaActual = teclado.readLine();
+        System.out.println(in.readLine()); // Solicitud de contraseña actual
+        String contrasenaActual = consoleInput.readLine();
         out.println(contrasenaActual);
 
-        // Verificación por parte del servidor
-        String respuestaVerificacion = in.readLine();
-        System.out.println("Servidor: " + respuestaVerificacion);
+        String respuesta = in.readLine();
+        System.out.println(respuesta);
 
-        if ("Verificación exitosa.".equals(respuestaVerificacion)) {
-            // Leer y enviar nueva contraseña
-            System.out.println(in.readLine()); // "Ingrese su nueva contraseña:"
-            String nuevaContrasena = teclado.readLine();
+        if (respuesta.equals("Verificación exitosa.")) {
+            System.out.println(in.readLine()); // Solicitud de nueva contraseña
+            String nuevaContrasena = consoleInput.readLine();
             out.println(nuevaContrasena);
 
-            // Leer respuesta del servidor
-            String respuestaActualizacion = in.readLine();
-            System.out.println("Servidor: " + respuestaActualizacion);
-
-            String menu=in.readLine();
-        } else {
-            System.out.println("La verificación de credenciales falló.");
-            mostrarMenu(); // Si la verificación falla
+            System.out.println(in.readLine()); // Resultado de la actualización
+            mostrarMenuLibros(consoleInput);
         }
     }
 
+    private void mostrarMenuLibros(BufferedReader consoleInput) throws IOException {
+        System.out.println(in.readLine()); // Selección de criterio de búsqueda
+        String opcionBusqueda = consoleInput.readLine();
+        out.println(opcionBusqueda);
 
+        switch (opcionBusqueda) {
+            case "1": // Búsqueda por autor
+                System.out.println(in.readLine()); // Solicitud de autor
+                String autor = consoleInput.readLine();
+                out.println(autor);
+                break;
+            case "2": // Búsqueda por género
+                System.out.println(in.readLine()); // Solicitud de género
+                String genero = consoleInput.readLine();
+                out.println(genero);
+                break;
+            case "3": // Ver todos los libros
+                // No se requiere entrada adicional, simplemente continúa
+                break;
+            default:
+                System.out.println("Opción inválida.");
+                return;
+        }
 
-    private void mostrarMenuLibros() throws IOException {
-        BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
-
-        String libroMenu;
-        while ((libroMenu = in.readLine()) != null) {
-            System.out.println("Servidor: " + libroMenu);
-
-            if (libroMenu.contains("Ingrese el número del libro")) {
-                String seleccion = teclado.readLine();
-                out.println(seleccion);
-                String confirmacion = in.readLine();
-                System.out.println("Servidor: " + confirmacion);
+        // Mostrar lista de libros
+        String respuesta;
+        while (!(respuesta = in.readLine()).isEmpty()) {
+            if (respuesta.equals("Ingrese el número del libro que desea reservar:")) {
+                System.out.println(respuesta);
                 break;
             }
+            System.out.println(respuesta);
         }
-        mostrarMenu();
+
+        // Seleccionar libro para reservar
+        String seleccion = consoleInput.readLine();
+        out.println(seleccion);
+
+        // Recibir respuesta de la reserva
+        System.out.println(in.readLine());
+    }
+
+    private void cerrarConexion() throws IOException {
+        in.close();
+        out.close();
+        socket.close();
     }
 
     public static void main(String[] args) {
         try {
-            Cliente cliente = new Cliente("localhost", 12345);
+            Cliente cliente = new Cliente("localhost", 12345); // Cambia "localhost" por la IP del servidor si es en otra máquina
             cliente.iniciarCliente();
         } catch (IOException e) {
             System.out.println("Error al conectar con el servidor: " + e.getMessage());

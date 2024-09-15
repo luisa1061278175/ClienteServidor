@@ -62,7 +62,7 @@ public class Servidor {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error durante la comunicación con el cliente: " + e.getMessage());
+
         }
     }
 
@@ -142,62 +142,89 @@ public class Servidor {
 
     private void mostrarMenuLibros(BufferedReader in, PrintWriter out) throws IOException {
         List<String> lineas = Files.readAllLines(Paths.get(RUTA_LIBROS));
-        List<String> nuevasLineas = new ArrayList<>();
-        List<String> librosDisponibles = new ArrayList<>();
 
-        // Mostrar los libros disponibles
-        out.println("Libros disponibles:");
-        System.out.println("Enviando lista de libros disponibles al cliente.");
+        // Preguntar al cliente si desea buscar por autor, género o ver todos los libros
+        out.println("Seleccione el criterio de búsqueda: 1. Autor  2. Género  3. Ver todos los libros");
+        String opcionBusqueda = in.readLine();
 
-        int index = 1;
-        for (String linea : lineas) {
-            String[] datos = linea.split(";");
-            if (datos[4].equals("true")) { // Solo mostrar libros disponibles
-                out.println(index + ". " + datos[1] + " - Autor: " + datos[2]);
-                librosDisponibles.add(datos[0]); // Guardar el id del libro disponible
-                index++;
-            }
-            nuevasLineas.add(linea); // Guardar todas las líneas
-        }
+        List<String> librosFiltrados = new ArrayList<>();
 
-        out.println("Ingrese el número del libro que desea reservar:");
-        System.out.println("Solicitud de número de libro enviada al cliente.");
+        if ("1".equals(opcionBusqueda)) {
+            // Búsqueda por autor
+            out.println("Ingrese el autor que desea buscar:");
+            String autor = in.readLine();
 
-        // Leer la selección del usuario
-        String seleccion = in.readLine();
-        System.out.println("Libro seleccionado por el cliente: " + seleccion);
-
-        int libroSeleccionado = Integer.parseInt(seleccion) - 1;
-
-        if (libroSeleccionado >= 0 && libroSeleccionado < librosDisponibles.size()) {
-            String libroId = librosDisponibles.get(libroSeleccionado);
-            boolean libroReservado = false;
-
-            // Actualizar la disponibilidad del libro seleccionado
-            for (int i = 0; i < lineas.size(); i++) {
-                String[] datos = lineas.get(i).split(";");
-                if (datos[0].equals(libroId)) {
-                    datos[4] = "false"; // Cambiar disponibilidad a 'false'
-                    nuevasLineas.set(i, String.join(";", datos));
-                    libroReservado = true;
-                    System.out.println("Libro reservado: " + datos[1]);
-                    break;
+            for (String linea : lineas) {
+                String[] datos = linea.split(";");
+                if (datos[2].equalsIgnoreCase(autor) && datos[4].equals("true")) { // Comparar autor y disponibilidad
+                    librosFiltrados.add(linea);
                 }
             }
+        } else if ("2".equals(opcionBusqueda)) {
+            // Búsqueda por género
+            out.println("Ingrese el género que desea buscar:");
+            String genero = in.readLine();
 
-            if (libroReservado) {
-                Files.write(Paths.get(RUTA_LIBROS), nuevasLineas);
-                out.println("Reserva realizada con éxito.");
-                System.out.println("Reserva realizada con éxito para el libro: " + libroId);
-            } else {
-                out.println("Error al realizar la reserva.");
-                System.out.println("Error al realizar la reserva del libro: " + libroId);
+            for (String linea : lineas) {
+                String[] datos = linea.split(";");
+                if (datos[3].equalsIgnoreCase(genero) && datos[4].equals("true")) { // Comparar género y disponibilidad
+                    librosFiltrados.add(linea);
+                }
+            }
+        } else if ("3".equals(opcionBusqueda)) {
+            // Mostrar todos los libros disponibles sin filtrar
+            for (String linea : lineas) {
+                String[] datos = linea.split(";");
+                if (datos[4].equals("true")) { // Solo mostrar libros disponibles
+                    librosFiltrados.add(linea);
+                }
             }
         } else {
-            out.println("Número de libro inválido.");
-            System.out.println("Número de libro inválido ingresado por el cliente.");
+            out.println("Opción inválida.");
+            return;
+        }
+
+        // Mostrar los libros filtrados según la búsqueda o todos los disponibles
+        if (!librosFiltrados.isEmpty()) {
+            out.println("Libros disponibles:");
+            for (int i = 0; i < librosFiltrados.size(); i++) {
+                String[] datos = librosFiltrados.get(i).split(";");
+                out.println((i + 1) + ". " + datos[1] + " - Autor: " + datos[2] + " - Género: " + datos[3]);
+            }
+
+            out.println("Ingrese el número del libro que desea reservar:");
+            String seleccion = in.readLine();
+
+            int libroSeleccionado = Integer.parseInt(seleccion) - 1;
+            if (libroSeleccionado >= 0 && libroSeleccionado < librosFiltrados.size()) {
+                String libroId = librosFiltrados.get(libroSeleccionado).split(";")[0];
+                reservarLibro(libroId, lineas);
+                out.println("Reserva realizada con éxito.");
+            } else {
+                out.println("Número de libro inválido.");
+            }
+        } else {
+            out.println("No se encontraron libros según los criterios de búsqueda.");
         }
     }
+
+    // Método para actualizar la disponibilidad del libro en el archivo
+    private void reservarLibro(String libroId, List<String> lineas) throws IOException {
+        List<String> nuevasLineas = new ArrayList<>();
+
+        for (String linea : lineas) {
+            String[] datos = linea.split(";");
+            if (datos[0].equals(libroId)) {
+                datos[4] = "false"; // Cambiar disponibilidad a 'false'
+                nuevasLineas.add(String.join(";", datos));
+            } else {
+                nuevasLineas.add(linea);
+            }
+        }
+
+        Files.write(Paths.get(RUTA_LIBROS), nuevasLineas);
+    }
+
 
     public static boolean verificarCredenciales(String cedula, String contrasena) throws IOException {
         List<String> lineas = Files.readAllLines(Paths.get(RUTA_ARCHIVO));
